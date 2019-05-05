@@ -1,0 +1,6 @@
+{
+    "Name": "Scripting Example 1",
+    "Author": "MulleDK19",
+    "Description": "A scripting example mod.",
+    "Assembly": "BASScriptingExample1.dll"
+}
