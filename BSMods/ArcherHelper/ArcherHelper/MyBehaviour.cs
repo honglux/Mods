@@ -13,6 +13,7 @@
         private static ArcherH instance;
 
         private Transform player_TRANS;
+        private Camera camera;
 
         private float timer;
         private float timer2;
@@ -36,6 +37,7 @@
         {
             Logging.Log($"[{Time.fixedTime}] {nameof(ArcherH)} has woken!");
             player_TRANS = null;
+            camera = null;
             debug_counter = 0;
             timer = 2.0f;
             timer2 = 0.1f;
@@ -49,9 +51,8 @@
             if(timer < 0)
             {
                 timer = 2.0f;
-
+                update_camera();
                 player();
-
             }
 
             timer2 -= Time.deltaTime;
@@ -111,7 +112,8 @@
         {
             try
             {
-                if (player_TRANS != null && player_TRANS.GetComponent<BS.Player>() != null)
+                if (player_TRANS != null && player_TRANS.GetComponent<BS.Player>() != null &&
+                    camera != null)
                 {
                     BS.Player player = player_TRANS.GetComponent<BS.Player>();
                     if (player.body.handRight.interactor.grabbedObject != null)
@@ -123,7 +125,8 @@
                             {
                                 Grabbed_TRANS.gameObject.AddComponent<ArrowIndicator>();
                                 Grabbed_TRANS.GetComponent<ArrowIndicator>().
-                                    init_AI(player_TRANS, 5.0f);
+                                    init_AI(player,player.body.handRight.interactor, 5.0f,
+                                            camera);
                             }
                             else if (Grabbed_TRANS.GetComponent<ArrowIndicator>().End_flag)
                             {
@@ -135,6 +138,24 @@
             }
             catch { }
 
+        }
+
+        private void update_camera()
+        {
+            camera = Camera.main;
+        }
+
+        private void text_test()
+        {
+            Camera[] find_camera = FindObjectsOfType(typeof(Camera)) as Camera[];
+            GameObject texts = new GameObject();
+            for(int i = 0;i<find_camera.Length;i++)
+            {
+                GameObject temp_ref = Instantiate(texts, find_camera[i].transform.position,
+                                        find_camera[i].transform.rotation);
+                temp_ref.AddComponent<TextMesh>();
+                temp_ref.GetComponent<TextMesh>().text = find_camera[i].name;
+            }
         }
     }
 
