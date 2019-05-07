@@ -20,7 +20,7 @@
         [ModEntryPoint]
         internal static void OnStart()
         {
-            GameManager.local.gameObject.AddComponent<ARcherH>();
+            GameManager.local.gameObject.AddComponent<ArcherH>();
 
 			Logging.Log("ArcherHelper has loaded.");
         }
@@ -28,7 +28,7 @@
         [ModExitPoint]
         internal static void OnExit()
         {
-            ARcherH script = ARcherH.Instance;
+            ArcherH script = ArcherH.Instance;
             if (script)
             {
                 UnityEngine.Object.Destroy(script);

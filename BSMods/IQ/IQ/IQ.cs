@@ -135,6 +135,7 @@
                 while (finded.quiverHolder.holdObjects.Count < 10)
                 {
                     BS.InteractiveObject A_OBJ = finded.quiverHolder.holdObjects[0].item.Instantiate();
+                    A_OBJ.name = finded.quiverHolder.holdObjects[0].transform.name;
                     finded.quiverHolder.Snap(A_OBJ);
                 }
             }
