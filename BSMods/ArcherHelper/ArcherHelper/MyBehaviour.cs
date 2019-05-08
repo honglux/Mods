@@ -1,15 +1,15 @@
 ﻿namespace ArcherHelper
 {
     using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
     using ModLoader;
     using UnityEngine;
+    using System.IO;
 
     internal class ArcherH : MonoBehaviour
     {
+        const string folder_path = "Mods/ArcherHelper/";
+        const string file_name = "AHSetting.json";
+
         private static ArcherH instance;
 
         private Transform player_TRANS;
@@ -35,7 +35,8 @@
         // Called when this instance is being loaded. Initialization should be done here, not in the constructor.
         private void Awake()
         {
-            Logging.Log($"[{Time.fixedTime}] {nameof(ArcherH)} has woken!");
+            generate_setting_temp();
+
             player_TRANS = null;
             camera = null;
             debug_counter = 0;
@@ -156,6 +157,26 @@
                 temp_ref.AddComponent<TextMesh>();
                 temp_ref.GetComponent<TextMesh>().text = find_camera[i].name;
             }
+        }
+
+        private void generate_setting_temp()
+        {
+            //AHSetting;
+            AHSetting AHS = new AHSetting();
+            //AHS.test_str = "bbb";
+            string AHS_json = JsonUtility.ToJson(AHS);
+            if (!Directory.Exists(folder_path))
+            {
+                try
+                {
+                    Directory.CreateDirectory(folder_path);
+                }
+                catch (Exception e)
+                {
+                    Debug.Log("Folder creation failed, " + e);
+                }
+            }
+            File.WriteAllText(folder_path + file_name, AHS_json);
         }
     }
 

@@ -105,6 +105,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AHSetting.cs" />
     <Compile Include="ArrowIndicator.cs" />
     <Compile Include="DeSpawn.cs" />
     <Compile Include="EntryPoint.cs" />
