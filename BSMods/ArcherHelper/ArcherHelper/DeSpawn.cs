@@ -20,5 +20,10 @@
                 Destroy(gameObject);
             }
         }
+
+        public void init_despawn(float time)
+        {
+            timer = time;
+        }
     }
 }

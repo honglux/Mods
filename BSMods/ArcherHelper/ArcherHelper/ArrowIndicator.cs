@@ -8,29 +8,28 @@
 
         public bool Waiting_flag { get; private set; }
         public bool End_flag { get; private set; }
+
+        private AHSetting AHS;
+
         private float WaitTime;
         private float wait_timer;
         private Transform player_TRANS;
         private BS.Player player;
         private BS.Interactor interactor;
         private bool UsingDynamicSize;
-        //private float fieldofview;
         private Vector3 orig_size;
         private Camera camera;
 
         private void Awake()
         {
+            this.AHS = null;
             this.Waiting_flag = false;
             this.End_flag = false;
             this.wait_timer = WaitTime;
             this.player = null;
             this.interactor = null;
             this.player_TRANS = null;
-            //this.fieldofview = 0.0f;
             this.orig_size = new Vector3();
-            //this.hand = null;
-
-            orig_size = new Vector3(0.02f, 0.02f, 0.02f);
         }
 
         private void Update()
@@ -44,7 +43,6 @@
                     {
                         Waiting_flag = false;
                         End_flag = true;
-                        Debug.Log("ArrowIndicator waited !!!!! " + transform.name);
                         Destroy(this);
                     }
                 }
@@ -55,19 +53,7 @@
                         if (interactor.grabbedObject == null || 
                             !GameObject.ReferenceEquals(interactor.grabbedObject.transform.parent.gameObject, gameObject))
                         {
-                            //Debug.Log("$$$$$$$$$$$$$ ");
-                            //Debug.Log(player.body.handRight.transform.name);
-                            //Debug.Log(player.body.handRight.interactor.transform.name);
-                            //Debug.Log(player.body.handRight.interactor.grabbedObject.transform.name);
-                            //Debug.Log(player.body.handRight.interactor.grabbedObject.transform.parent.gameObject.name);
-                            //Debug.Log(gameObject.name);
                             start_wait();
-                        }
-                        else
-                        {
-                            //Debug.Log("$$$$$$$$$$$$$ ");
-                            //Debug.Log(player.body.handRight.interactor.grabbedObject.transform.name);
-                            //Debug.Log(player.body.handRight.interactor.grabbedObject.transform.parent.gameObject.name);
                         }
                     }
                     catch (Exception e)
@@ -105,7 +91,7 @@
         }
 
         public void init_AI(BS.Player _player, BS.Interactor _interactor, float _wait_time,
-                            Camera _camera)
+                            Camera _camera,AHSetting _AHS)
         {
             player = _player;
             interactor = _interactor;
@@ -113,6 +99,8 @@
             WaitTime = _wait_time;
             wait_timer = WaitTime;
             camera = _camera;
+            AHS = _AHS;
+            orig_size = AHS.OriginalSize;
         }
 
         public void start_wait()
@@ -148,33 +136,33 @@
                 {
                     GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
                     sphere.AddComponent<DeSpawn>();
+                    sphere.GetComponent<DeSpawn>().init_despawn(AHS.IndicatorDespawnTime);
                     sphere.GetComponent<SphereCollider>().enabled = false;
                     Destroy(sphere.GetComponent<SphereCollider>());
-                    sphere.GetComponent<MeshRenderer>().material.color = Color.red;
+                    sphere.GetComponent<MeshRenderer>().material.color = AHS.IndicatorColor;
                     sphere.transform.position = CP.point;
-                    sphere.transform.localScale = size_cal(CP.point);
+                    if(AHS.UseDynamicSize)
+                    {
+                        sphere.transform.localScale = size_cal(CP.point);
+                    }
+                    else
+                    {
+                        sphere.transform.localScale = orig_size;
+                    }
+                    
                 }
-                catch { }
+                catch (Exception e)
+                {
+                    Debug.Log("AH spawn_indicator error " + e);
+                }
             }
         }
         
         private Vector3 size_cal(Vector3 hit_point)
         {
-            Debug.Log("$$$$$$$$$$$$$ ");
             float dist = Vector3.Distance(camera.transform.position, hit_point);
-            //test_cube();
-            //Debug.Log("dist " + dist);
             float rad_scale = Mathf.Tan(camera.fieldOfView / 2) * dist;
-            //Debug.Log("rad_scale " + rad_scale);
-            //Debug.Log("return " + orig_size * rad_scale);
             return orig_size * rad_scale;
-        }
-
-        private void test_cube()
-        {
-            GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            cube.transform.position = camera.transform.position;
-            cube.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
         }
     }
 }

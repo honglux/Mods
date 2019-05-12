@@ -9,17 +9,18 @@
     {
         const string folder_path = "Mods/ArcherHelper/";
         const string file_name = "AHSetting.json";
+        const string player_OBJ_str = "Player(Clone)";
 
         private static ArcherH instance;
 
         private Transform player_TRANS;
         private Camera camera;
 
-        private float timer;
+        private AHSetting AHS;
+        private float Time1;
+        private float Time2;
+        private float timer1;
         private float timer2;
-        private float timer3 = 0.0f;
-
-        private int debug_counter = 0;
 
         public ArcherH()
         {
@@ -35,23 +36,25 @@
         // Called when this instance is being loaded. Initialization should be done here, not in the constructor.
         private void Awake()
         {
-            generate_setting_temp();
+            //generate_setting_temp();
+            load_setting();
 
-            player_TRANS = null;
-            camera = null;
-            debug_counter = 0;
-            timer = 2.0f;
-            timer2 = 0.1f;
+            this.Time1 = AHS.SearchPlayerTime;
+            this.Time2 = AHS.CheckHandTime;
+            this.player_TRANS = null;
+            this.camera = null;
+            this.timer1 = Time1;
+            this.timer2 = Time2;
     }
 
         // Called every frame. If you do not need to execute code each tick, you should remove this method.
         private void Update()
         {
 
-            timer -= Time.deltaTime;
-            if(timer < 0)
+            timer1 -= Time.deltaTime;
+            if(timer1 < 0)
             {
-                timer = 2.0f;
+                timer1 = Time1;
                 update_camera();
                 player();
             }
@@ -59,56 +62,27 @@
             timer2 -= Time.deltaTime;
             if(timer2 < 0)
             {
-                timer2 = 0.1f;
+                timer2 = Time2;
 
                 arrow_indicator();
             }
-
-            //debug();
-        }
-
-        private void debug()
-        {
-            timer3 += Time.deltaTime;
-            Debug.Log("timer3 " + timer3.ToString("F2"));
-        }
-
-        // Called when this instance is being destroyed. Use to clean up.
-        private void OnDestroy()
-        {
-            Logging.Log($"[{Time.fixedTime}] {nameof(ArcherH)} has been destroyed!");
         }
 
         private void player()
         {
-            Debug.Log("~~~~~~~~~~~~~~~~~");
-
-            //if(player_TRANS == null)
-            //{
-            //    player_TRANS = 
-            //}
-
             try
             {
                 if(player_TRANS == null || player_TRANS.GetComponent<BS.Player>() == null)
                 {
-                    BS.Player player = FindObjectOfType(typeof(BS.Player)) as BS.Player;
-                    player_TRANS = player.transform;
+                    player_TRANS = GameObject.Find(player_OBJ_str).transform;
                 }
             }
-            catch (Exception e) { Debug.Log("Player error "+e); }
-            
-
-            //Debug.Log("Player num " + );
-
-            //foreach (BS.Player finded in FindObjectsOfType<BS.Player>())
-            //{
-            //position = finded.transform.position;
-
-            //}
-            //GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            //cube.transform.position = position;
+            catch (Exception e)
+            {
+                //Debug.Log("Player error "+e);
+            }
         }
+
         private void arrow_indicator()
         {
             try
@@ -117,17 +91,38 @@
                     camera != null)
                 {
                     BS.Player player = player_TRANS.GetComponent<BS.Player>();
-                    if (player.body.handRight.interactor.grabbedObject != null)
+                    if (AHS.UseRightHand &&
+                        player.body.handRight.interactor.grabbedObject != null)
                     {
                         Transform Grabbed_TRANS = player.body.handRight.interactor.grabbedObject.transform.parent;
-                        if (Grabbed_TRANS.name == "Pool_Arrow1")
+                        if (AHS.ObjectToIndiNames.Contains(Grabbed_TRANS.name))
                         {
                             if (Grabbed_TRANS.GetComponent<ArrowIndicator>() == null)
                             {
                                 Grabbed_TRANS.gameObject.AddComponent<ArrowIndicator>();
                                 Grabbed_TRANS.GetComponent<ArrowIndicator>().
-                                    init_AI(player,player.body.handRight.interactor, 5.0f,
-                                            camera);
+                                    init_AI(player,player.body.handRight.interactor, 
+                                            AHS.TimeExistAfterHand,camera,AHS);
+                            }
+                            else if (Grabbed_TRANS.GetComponent<ArrowIndicator>().End_flag)
+                            {
+                                Grabbed_TRANS.GetComponent<ArrowIndicator>().reset();
+                            }
+                        }
+                    }
+
+                    if (AHS.UseLeftHand &&
+                        player.body.handLeft.interactor.grabbedObject != null)
+                    {
+                        Transform Grabbed_TRANS = player.body.handLeft.interactor.grabbedObject.transform.parent;
+                        if (AHS.ObjectToIndiNames.Contains(Grabbed_TRANS.name))
+                        {
+                            if (Grabbed_TRANS.GetComponent<ArrowIndicator>() == null)
+                            {
+                                Grabbed_TRANS.gameObject.AddComponent<ArrowIndicator>();
+                                Grabbed_TRANS.GetComponent<ArrowIndicator>().
+                                    init_AI(player, player.body.handRight.interactor,
+                                            AHS.TimeExistAfterHand, camera,AHS);
                             }
                             else if (Grabbed_TRANS.GetComponent<ArrowIndicator>().End_flag)
                             {
@@ -137,7 +132,10 @@
                     }
                 }
             }
-            catch { }
+            catch (Exception e)
+            {
+                //Debug.Log("AH arrow_indicator error " + e);
+            }
 
         }
 
@@ -146,24 +144,10 @@
             camera = Camera.main;
         }
 
-        private void text_test()
-        {
-            Camera[] find_camera = FindObjectsOfType(typeof(Camera)) as Camera[];
-            GameObject texts = new GameObject();
-            for(int i = 0;i<find_camera.Length;i++)
-            {
-                GameObject temp_ref = Instantiate(texts, find_camera[i].transform.position,
-                                        find_camera[i].transform.rotation);
-                temp_ref.AddComponent<TextMesh>();
-                temp_ref.GetComponent<TextMesh>().text = find_camera[i].name;
-            }
-        }
-
         private void generate_setting_temp()
         {
             //AHSetting;
             AHSetting AHS = new AHSetting();
-            //AHS.test_str = "bbb";
             string AHS_json = JsonUtility.ToJson(AHS);
             if (!Directory.Exists(folder_path))
             {
@@ -178,7 +162,33 @@
             }
             File.WriteAllText(folder_path + file_name, AHS_json);
         }
+
+        private void load_setting()
+        {
+            AHS = new AHSetting();
+            try
+            {
+                if (!Directory.Exists(folder_path))
+                {
+                    throw new Exception("Path do not exist");
+                }
+                else
+                {
+                    string json = File.ReadAllText(folder_path + file_name);
+                    AHS = JsonUtility.FromJson<AHSetting>(json);
+                }
+            }
+            catch(Exception e)
+            {
+                Debug.Log("AH Setting load failed " + e);
+            }
+        }
+
+
+
+
+
+
+
     }
-
-
 }

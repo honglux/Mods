@@ -109,7 +109,7 @@
     <Compile Include="ArrowIndicator.cs" />
     <Compile Include="DeSpawn.cs" />
     <Compile Include="EntryPoint.cs" />
-    <Compile Include="MyBehaviour.cs" />
+    <Compile Include="ArcherH.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
